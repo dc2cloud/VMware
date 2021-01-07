@@ -1,0 +1,39 @@
+<#
+        Script Name	: Get-RvToolReport.ps1
+        Description	: This script reports the various RvTool.
+        Author		: Mohd. Fawaz Akhtar
+        Reference   : https://www.robware.net/rvtools/
+
+        Requires Powershell Version 2 and above
+        Requires RVtool installed over the machine
+
+        RVToolsPasswordEncryption : Use for creating Password that can be used with Password in Input Variables.
+        Browse "c:\program files (x86)\robware\rvtools"
+        Open "RVToolsPasswordEncryption"
+        Enter Your Password
+        Copy the Encrypted Password and add in Password
+#>
+#Provide the Input Values as per your Environment
+
+$Vcenter = "Vcenter Server"
+$User = "UserID"
+$Password = "Encrypted Password" # Use RVToolsPasswordEncryption
+$OutPutPath = "C:\Temp"
+$From = "rvtool@email.com"
+$To = "mohdfawaz.akhtar@gmail.com”
+$SMTPServer = "smtp.gmail.com"
+$SMTPPort = "25"
+
+#Dont change anything after this line
+
+cd "c:\program files (x86)\robware\rvtools"
+$Date = (Get-Date -f "yyyyMMddHHmm")
+$filename = $Vcenter + "-" + $Date
+.\RVTools.exe -s $Vcenter -u $User -p $Password -c ExportAll2xls -d $OutPutPath -f $filename
+$DateEmail = Get-Date -UFormat “%A %m/%d/%Y"
+$Subject = "$Vcenter Rvtool Report $DateEmail"
+$Body = "<h2>Please find the attach Rvtool Report for $Vcenter</h2><br><br>"
+Start-Sleep 300
+$filenameemail = $OutPutPath + "\" + $filename + ".xlsx"
+$attach = Get-Item $filenameemail
+Send-MailMessage -From $From -to $To -Subject $Subject -Body $Body -BodyAsHtml -SmtpServer $SMTPServer -Port $SMTPPort -Attachments $attach
